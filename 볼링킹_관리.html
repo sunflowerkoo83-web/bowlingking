@@ -766,7 +766,7 @@ R['fees']=function(){
     const v=f||'';
     if(v==='O') return`<td class="fee-o" onclick="cycleCell('${name}',${mi})">✓</td>`;
     if(v==='X') return`<td class="fee-x" onclick="cycleCell('${name}',${mi})">✗</td>`;
-    if(v==='탈퇴') return`<td class="fee-res">탈퇴</td>`;
+    if(v==='탈퇴') return`<td class="fee-res">-</td>`;
     return`<td class="fee-em" onclick="cycleCell('${name}',${mi})">·</td>`;
   }
 
@@ -810,7 +810,7 @@ R['fees']=function(){
   const rTrs=allWithdrawn.map(m=>{
     const fees=(m.fees||[]).slice(0,APP.feeMonths.length);
     while(fees.length<APP.feeMonths.length) fees.push('');
-    return`<tr style="opacity:.55"><td class="sc" style="color:#aaa">${m.name}</td>${fees.map(f=>f==='O'?'<td style="color:#aaa">✓</td>':`<td class="fee-res">${f==='탈퇴'?'탈퇴':'-'}</td>`).join('')}<td></td></tr>`;
+    return`<tr style="opacity:.55"><td class="sc" style="color:#aaa">${m.name}</td>${fees.map(f=>f==='O'?'<td style="color:#aaa">✓</td>':`<td class="fee-res">-</td>`).join('')}<td></td></tr>`;
   }).join('');
 
   el.innerHTML=`
