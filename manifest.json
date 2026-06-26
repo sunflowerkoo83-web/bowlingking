@@ -1,0 +1,38 @@
+{
+  "name": "볼링킹 에버 관리",
+  "short_name": "볼링킹",
+  "description": "볼링킹 모임 에버 · 회비 · 회원 · 장부 관리",
+  "start_url": "./볼링킹_관리.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1c1c1c",
+  "theme_color": "#1c1c1c",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "점수 입력",
+      "url": "./볼링킹_관리.html#score-entry",
+      "description": "새 회차 점수 입력"
+    },
+    {
+      "name": "회차 순위",
+      "url": "./볼링킹_관리.html#ranking",
+      "description": "이번 회차 순위 보기"
+    }
+  ]
+}

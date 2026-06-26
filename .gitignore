@@ -1,0 +1,13 @@
+# 엑셀 임시 파일
+~$*.xlsx
+*.xlsx
+
+# Node
+node_modules/
+npm-debug.log
+
+# 배치 파일 (로컬 전용)
+*.bat
+
+# 백업 JSON (필요 시 제거)
+볼링킹_*.json
