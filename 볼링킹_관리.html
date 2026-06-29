@@ -516,11 +516,21 @@ R['all-ever']=function(){
 let pIdx=0;
 R['ever']=function(){
   const el=document.getElementById('ever');
-  const periods=[...new Set(APP.sessions.map(s=>s.period))];
+  const periods=[...new Set(APP.sessions.map(s=>s.period))].reverse();
   if(pIdx>=periods.length) pIdx=periods.length-1;
   const btns=periods.map((p,i)=>`<button class="bper ${i===pIdx?'active':''}" onclick="pIdx=${i};R['ever']()">${p}</button>`).join('');
   const ps=APP.sessions.filter(s=>s.period===periods[pIdx]);
-  el.innerHTML=`<div class="toolbar"><label style="font-size:13px;color:#555">기간:</label>${btns}</div>${buildTable(ps,APP.members)}`;
+  const sortedMembers=[...APP.members].sort((a,b)=>{
+    const aVals=ps.map(s=>getAvg(s.scores[a.name])).filter(x=>x!=null);
+    const bVals=ps.map(s=>getAvg(s.scores[b.name])).filter(x=>x!=null);
+    const aAvg=aVals.length?aVals.reduce((x,y)=>x+y,0)/aVals.length:null;
+    const bAvg=bVals.length?bVals.reduce((x,y)=>x+y,0)/bVals.length:null;
+    if(aAvg==null&&bAvg==null) return 0;
+    if(aAvg==null) return 1;
+    if(bAvg==null) return -1;
+    return bAvg-aAvg;
+  });
+  el.innerHTML=`<div class="toolbar"><label style="font-size:13px;color:#555">기간:</label>${btns}</div>${buildTable(ps,sortedMembers)}`;
 };
 
 // ── 회차 순위 ────────────────────────────────────────────────
