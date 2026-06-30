@@ -159,6 +159,8 @@ table.dt tr:hover td{background:#fef5f5;}table.dt tr:hover td.sc{background:#fce
 /* iOS 안전 영역 */
 body{padding-bottom:env(safe-area-inset-bottom);}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="app-header">
@@ -1166,8 +1168,6 @@ async function initApp(){
   if(FIREBASE_CONFIG.apiKey==='YOUR_API_KEY') return;
   try{
     const T=ms=>new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms));
-    await Promise.race([_loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js'),T(8000)]);
-    await Promise.race([_loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js'),T(8000)]);
     _fbApp=firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);
     _db=firebase.database();
     _dataRef=_db.ref('볼링킹');
