@@ -9,5 +9,9 @@ npm-debug.log
 # 배치 파일 (로컬 전용)
 *.bat
 
+# 로컬 개발 서버 (Vercel에 올라가면 안 됨)
+server.js
+DESIGN.md
+
 # 백업 JSON (필요 시 제거)
 볼링킹_*.json
