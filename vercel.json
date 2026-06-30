@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": null,
-  "outputDirectory": ".",
   "rewrites": [
     { "source": "/", "destination": "/볼링킹_관리.html" }
   ]
