@@ -805,7 +805,7 @@ R['fees']=function(){
     <div class="fee-sum-card" style="border-color:#ff9800"><div class="fsc-v" style="color:#e65100">${fa.toLocaleString()}원</div><div class="fsc-l">월 회비 단가 <button style="font-size:11px;padding:2px 6px;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:#fff" onclick="setFeeAmt()">변경</button></div></div>
   </div>`;
 
-  const ths=`<th class="sc" style="min-width:80px">이름</th>${APP.feeMonths.map((m,mi)=>`<th style="white-space:nowrap">${m}<br><button onclick="delMonth(${mi})" style="margin-top:3px;font-size:10px;padding:1px 5px;background:#ffebee;color:#c62828;border:none;border-radius:4px;cursor:pointer;font-family:inherit">🗑삭제</button></th>`).join('')}<th>미납</th>`;
+  const ths=`<th class="sc" style="min-width:80px">이름</th>${APP.feeMonths.map((m,mi)=>`<th style="white-space:nowrap">${m}<br><button onclick="openEditMonth(${mi})" style="margin-top:3px;font-size:10px;padding:1px 5px;background:#e3f2fd;color:#1565c0;border:none;border-radius:4px;cursor:pointer;font-family:inherit">✏️수정</button> <button onclick="delMonth(${mi})" style="margin-top:3px;font-size:10px;padding:1px 5px;background:#ffebee;color:#c62828;border:none;border-radius:4px;cursor:pointer;font-family:inherit">🗑삭제</button></th>`).join('')}<th>미납</th>`;
   const trs=APP.feeData.map(m=>{
     while(m.fees.length<APP.feeMonths.length) m.fees.push('');
     const unpaidCnt=m.fees.slice(0,APP.feeMonths.length).filter(f=>f==='X').length;
@@ -916,6 +916,42 @@ function delMonth(mi){
   APP.feeData.forEach(m=>m.fees.splice(mi,1));
   (APP.withdrawnFeeData||[]).forEach(m=>{if(m.fees) m.fees.splice(mi,1);});
   saveState();showSnack(`🗑️ ${mo} 삭제됨`);R['fees']();
+}
+
+function openEditMonth(mi){
+  const mo=APP.feeMonths[mi];
+  const rows=APP.feeData.map(m=>{
+    const cur=m.fees[mi]||'';
+    return`
+    <div class="fee-member-row">
+      <span class="fee-member-name">${m.name}</span>
+      <button class="ox-btn ox-o ${cur==='O'?'sel':''}" id="oxbtn_${m.name}_O" onclick="selectOX('${m.name}','O')">✓ 납부</button>
+      <button class="ox-btn ox-x ${cur==='X'?'sel':''}" id="oxbtn_${m.name}_X" onclick="selectOX('${m.name}','X')">✗ 미납</button>
+      <button class="ox-btn ox-em ${cur===''?'sel':''}" id="oxbtn_${m.name}_" onclick="selectOX('${m.name}','')">· 미기록</button>
+    </div>`;
+  }).join('');
+  // _oxSel 초기값: 현재 저장된 값으로 세팅
+  APP.feeData.forEach(m=>{_oxSel[m.name]=m.fees[mi]||'';});
+  document.getElementById('modal-title').textContent=`${mo} 월 납부 현황 수정`;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="margin-bottom:10px;display:flex;gap:8px">
+      <button class="btn bp bsm" onclick="setAllOX('O')">전체 납부</button>
+      <button class="btn bd bsm" onclick="setAllOX('X')">전체 미납</button>
+      <button class="btn bo bsm" onclick="setAllOX('')">전체 미기록</button>
+    </div>
+    <div style="border:1px solid #fde8e8;border-radius:8px;max-height:360px;overflow-y:auto;">${rows}</div>
+    <div class="fa">
+      <button class="btn bo" onclick="closeModal()">취소</button>
+      <button class="btn bs2" onclick="saveEditMonth(${mi})">💾 저장</button>
+    </div>`;
+  openModal();
+}
+function saveEditMonth(mi){
+  APP.feeData.forEach(m=>{
+    if(_oxSel[m.name]!==undefined) m.fees[mi]=_oxSel[m.name];
+  });
+  Object.keys(_oxSel).forEach(k=>delete _oxSel[k]);
+  saveState();closeModal();showSnack(`✅ ${APP.feeMonths[mi]} 납부 현황 수정됨`);R['fees']();
 }
 
 // ── 회원 관리 ────────────────────────────────────────────────
