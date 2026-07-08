@@ -1,4 +1,4 @@
-const CACHE = 'bowlingking-v1';
+const CACHE = 'bowlingking-v2';
 
 // 캐시할 파일 목록
 const ASSETS = [
@@ -25,19 +25,15 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// 요청 처리: 캐시 우선, 없으면 네트워크
+// 요청 처리: 네트워크 우선(항상 최신 버전 반영), 오프라인일 때만 캐시 사용
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        // 성공한 응답은 캐시에도 저장
-        if (res && res.status === 200 && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE).then(cache => cache.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => cached); // 오프라인일 때 캐시 반환
-    })
+    fetch(e.request).then(res => {
+      if (res && res.status === 200 && res.type === 'basic') {
+        const clone = res.clone();
+        caches.open(CACHE).then(cache => cache.put(e.request, clone));
+      }
+      return res;
+    }).catch(() => caches.match(e.request))
   );
 });
