@@ -358,7 +358,7 @@ function migrateData(st){
   if(!st.laneConditions) st.laneConditions={};
   if(!st.withdrawnFeeData) st.withdrawnFeeData=[];
   (st.sessions||[]).forEach(s=>{
-    s.period=PM(s.id);
+    if(!s.period) s.period=PM(s.id);
     if(!s.date&&SESSION_DATES[s.id]) s.date=SESSION_DATES[s.id];
   });
   // 회비·상벌금 월 라벨 교정: 잘못된 2024/2025 연도 → 2025/2026 으로 일괄 변환
@@ -467,6 +467,9 @@ R['dashboard']=function(){
     const v=APP.sessions.map(s=>getAvg(s.scores[m.name])).filter(x=>x!=null);
     return{name:m.name,gender:m.gender,count:v.length,avg:v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*10)/10:null};
   }).filter(r=>r.avg!=null).sort((a,b)=>b.avg-a.avg);
+  const periodList=[...new Set(APP.sessions.map(s=>s.period))];
+  const curPeriod=periodList.at(-1)||'-';
+  const prevPeriod=periodList.at(-2)||'-';
   const last=APP.sessions.at(-1);
   const lastLed=APP.ledger.filter(l=>l.b!=null).at(-1);
   const unpaid=APP.feeData.filter(m=>m.fees.some(f=>f==='X'));
@@ -482,8 +485,8 @@ R['dashboard']=function(){
   const ledIncome=APP.ledger.filter(l=>l.p!=null&&l.p>0).reduce((s,l)=>s+l.p,0);
   const ledExpense=APP.ledger.filter(l=>l.p!=null).reduce((s,l)=>s+(l.p<0?-l.p:0)+(l.g||0),0);
   el.innerHTML=`<div class="dash-grid">
-    <div class="card"><div class="sec">🏆 2026 상반기 순위</div>${rH(pR('2026 상반기'))}</div>
-    <div class="card"><div class="sec">📈 2025 하반기 순위</div>${rH(pR('2025 하반기'))}</div>
+    <div class="card"><div class="sec">🏆 ${curPeriod} 순위</div>${rH(pR(curPeriod))}</div>
+    <div class="card"><div class="sec">📈 ${prevPeriod} 순위</div>${rH(pR(prevPeriod))}</div>
     <div class="card"><div class="sec">🎳 전체 누적 순위</div>${rH(allR)}</div>
     <div class="card">
       <div class="sec">💰 회비 납부 현황</div>
