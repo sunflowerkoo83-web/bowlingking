@@ -486,6 +486,10 @@ R['dashboard']=function(){
   const totalUnpaid=APP.feeMonths.reduce((sum,_,mi)=>sum+APP.feeData.filter(m=>m.fees[mi]==='X').length*fa,0);
   const ledIncome=APP.ledger.filter(l=>l.p!=null&&l.p>0).reduce((s,l)=>s+l.p,0);
   const ledExpense=APP.ledger.filter(l=>l.p!=null).reduce((s,l)=>s+(l.p<0?-l.p:0)+(l.g||0),0);
+  const _usage=APP.feeUsage||[];
+  const _feeIncome=_usage.filter(u=>u.type==='income').reduce((s,u)=>s+(u.amount||0),0);
+  const _feeExpense=_usage.filter(u=>u.type!=='income').reduce((s,u)=>s+(u.amount||0),0);
+  const feeTotalBal=totalPaid+_feeIncome-_feeExpense;
   el.innerHTML=`<div class="dash-grid">
     <div class="card"><div class="sec">🏆 ${curPeriod} 순위</div>${rH(pR(curPeriod))}</div>
     <div class="card"><div class="sec">📈 ${prevPeriod} 순위</div>${rH(pR(prevPeriod))}</div>
@@ -494,6 +498,11 @@ R['dashboard']=function(){
       <div class="sec">💰 회비 납부 현황</div>
       <div class="sr2"><span class="sl2">총 납부액</span><span class="sv2" style="color:#2e7d32">${totalPaid.toLocaleString()}원</span></div>
       <div class="sr2"><span class="sl2">월 단가</span><span class="sv2">${fa.toLocaleString()}원/인</span></div>
+      <div style="border-top:1px solid #eee;margin:8px 0"></div>
+      <div class="sr2"><span class="sl2">추가 운영비 수입</span><span class="sv2" style="color:#2e7d32">${_feeIncome.toLocaleString()}원</span></div>
+      <div class="sr2"><span class="sl2">회비 사용액</span><span class="sv2" style="color:#c62828">${_feeExpense.toLocaleString()}원</span></div>
+      <div class="bb" style="margin-top:6px">${feeTotalBal.toLocaleString()}원</div>
+      <div class="bs">회비 총액 (납부+수입-사용)</div>
       <div style="border-top:1px solid #eee;margin:8px 0"></div>
       <div class="sr2"><span class="sl2">📒 상벌금 잔액</span><span class="sv2" style="color:#1b5fa3">${lastLed?lastLed.b.toLocaleString()+'원':'집계중'}</span></div>
     </div>
