@@ -346,7 +346,7 @@ function buildInitSess(){
 }
 function buildInitialState(){
   return{members:INIT_MEMBERS,sessions:buildInitSess(),nextMid:100,
-         feeMonths:INIT_FEE_MONTHS,feeData:INIT_FEE_DATA,ledger:INIT_LEDGER,feeAmount:30000,laneConditions:{},withdrawnFeeData:[]};
+         feeMonths:INIT_FEE_MONTHS,feeData:INIT_FEE_DATA,ledger:INIT_LEDGER,feeAmount:30000,laneConditions:{},withdrawnFeeData:[],feeUsage:[]};
 }
 function migrateData(st){
   if(!st) return buildInitialState();
@@ -357,6 +357,7 @@ function migrateData(st){
   if(!st.feeAmount) st.feeAmount=30000;
   if(!st.laneConditions) st.laneConditions={};
   if(!st.withdrawnFeeData) st.withdrawnFeeData=[];
+  if(!st.feeUsage) st.feeUsage=[];
   (st.sessions||[]).forEach(s=>{
     if(!s.period) s.period=PM(s.id);
     if(!s.date&&SESSION_DATES[s.id]) s.date=SESSION_DATES[s.id];
@@ -828,6 +829,12 @@ R['fees']=function(){
     return`<tr style="opacity:.55"><td class="sc" style="color:#aaa">${m.name}</td>${fees.map(f=>f==='O'?'<td style="color:#aaa">✓</td>':`<td class="fee-res">-</td>`).join('')}<td></td></tr>`;
   }).join('');
 
+  // 회비 사용 내역
+  const usage=APP.feeUsage||[];
+  const totalUsage=usage.reduce((s,u)=>s+(u.amount||0),0);
+  const remainBal=totalPaid-totalUsage;
+  const usageRows=usage.map((u,i)=>`<tr><td style="white-space:nowrap">${u.date||'-'}</td><td>${u.item||''}</td><td style="color:#c62828;font-weight:700;white-space:nowrap">${(u.amount||0).toLocaleString()}원</td><td style="color:#888;font-size:12px">${u.note||''}</td><td><button class="btn bd bsm" onclick="delFeeUsage(${i})">삭제</button></td></tr>`).join('');
+
   el.innerHTML=`
     <div class="toolbar">
       <div class="sec" style="margin:0;flex:1">💰 월별 회비 납부 현황 <small style="font-weight:400;color:#888;font-size:12px">(셀 클릭 → O/X 전환)</small></div>
@@ -842,8 +849,52 @@ R['fees']=function(){
           ${rTrs}
         </tbody>
       </table>
+    </div>
+    <div class="toolbar">
+      <div class="sec" style="margin:0;flex:1">💸 회비 사용 내역 <span style="font-size:13px;font-weight:400;color:#1b5fa3">남은 잔액: ${remainBal.toLocaleString()}원</span></div>
+      <button class="btn bp" onclick="openAddFeeUsage()">➕ 사용 내역 추가</button>
+    </div>
+    <div class="fee-summary-box">
+      <div class="fee-sum-card" style="border-color:#c62828"><div class="fsc-v" style="color:#c62828">${totalUsage.toLocaleString()}원</div><div class="fsc-l">총 사용 금액</div></div>
+    </div>
+    <div class="tw" style="margin-bottom:20px">
+      <table class="dt">
+        <thead><tr><th style="min-width:90px">날짜</th><th>사용 내용</th><th style="min-width:90px">금액</th><th>비고</th><th></th></tr></thead>
+        <tbody>${usageRows||'<tr><td colspan="5" style="text-align:center;color:#999;padding:14px">사용 내역이 없습니다</td></tr>'}</tbody>
+      </table>
     </div>`;
 };
+function delFeeUsage(idx){
+  if(!confirm('이 사용 내역을 삭제하시겠습니까?')) return;
+  APP.feeUsage.splice(idx,1);
+  saveState();showSnack('🗑️ 삭제됨');R['fees']();
+}
+function openAddFeeUsage(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('modal-title').textContent='회비 사용 내역 추가';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fr"><label>날짜</label><input type="date" id="fu-date" value="${today}"></div>
+    <div class="fr"><label>사용 내용 *</label><input type="text" id="fu-item" placeholder="예: 간식 구입, 대관료 등"></div>
+    <div class="fr"><label>금액 *</label><input type="number" id="fu-amount" placeholder="예: 30000" min="0"></div>
+    <div class="fr"><label>비고 (선택)</label><input type="text" id="fu-note" placeholder=""></div>
+    <div class="fa">
+      <button class="btn bo" onclick="closeModal()">취소</button>
+      <button class="btn bs2" onclick="saveFeeUsage()">✅ 추가</button>
+    </div>`;
+  openModal();
+}
+function saveFeeUsage(){
+  const date=document.getElementById('fu-date').value;
+  const item=document.getElementById('fu-item').value.trim();
+  const amount=parseInt(document.getElementById('fu-amount').value)||0;
+  const note=document.getElementById('fu-note').value.trim();
+  if(!item){showSnack('사용 내용을 입력하세요');return;}
+  if(amount<=0){showSnack('올바른 금액을 입력하세요');return;}
+  if(!APP.feeUsage) APP.feeUsage=[];
+  APP.feeUsage.push({date,item,amount,note});
+  APP.feeUsage.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  saveState();closeModal();showSnack('✅ 사용 내역이 추가되었습니다');R['fees']();
+}
 
 function setFeeAmt(){
   const cur=APP.feeAmount||30000;
@@ -1168,6 +1219,7 @@ function importData(){
         // 마이그레이션 보완
         if(!APP.laneConditions) APP.laneConditions={};
         if(!APP.feeAmount) APP.feeAmount=30000;
+        if(!APP.feeUsage) APP.feeUsage=[];
         APP.sessions.forEach(s=>{s.period=PM(s.id);if(!s.date&&SESSION_DATES[s.id])s.date=SESSION_DATES[s.id];});
         saveState();
         R['dashboard']();
